@@ -42,7 +42,37 @@ document.addEventListener('copy',function(event){
 ```
 这涉及到FileAPI，可以去[这里]()看。话说回来，这个接口目前即使传入File对象，剪切板的中设置的依然是string，内容为文件名称。
 
+### 读取剪切板
 
+第一种方法，用setData()放在剪切板的数据用getData获取，索引是format：
 
+```
+document.addEventListener('paste', function(event){
+	var clipboard = event.clipboardData;
+	var html = clipboard.getData('text/html');
+	var text = clipboard.getData('text/plain');
+});
+```
+第二种方法，用items.add放进剪切板或者系统级别的剪切板用遍历item的方法获取：
+
+```
+document.addEventListener('paste',function(event){
+	var items = event.clipboardData.items;
+	items.forEach(function(item){
+		if(item.kind === 'string'){
+			item.getAsString(function(str){
+				console.info(str);
+			});
+		}else if(item.kind === 'file'){
+			var blob = item.getAsFile();
+		}
+	});
+});
+```
+
+#数据类型
+``event.clipboardData``的数据类型为：TransferData
+
+``clipboardData.items``的类型为：
 
 
