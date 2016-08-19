@@ -1,0 +1,13 @@
+#1、简介
+这份文档介绍如何管理“撤销操作历史（undo transaction history，也叫做undo stack）”接口。并且教会读者怎样创建可以被这些API管理的对象。
+许多web端的富文本编辑器引入了浏览器并不原生支持的编辑操作，那么想要撤销或者恢复这些编辑操作就变得困难。使用原生的document.execCommand接口进行的操作可以原生undo和redo。但是用户自己写在脚本的中操作就很难通过接口简便的undo和redo。最初，不少web应用将innerHTML保存起来，当undo和redo的时候再取出来替换。这种方法非常拙劣、低效，同时限制了undo堆栈的深度。
+
+同样，一个混合了各种文本编辑（canvas，text fields，contenteditable）的应用，也不可能使用单一的undo栈来操作所有的编辑，因为一个文档只有一个undo栈。
+
+这份文档会交我们如何定义undo作用域，想原生的undo栈中添加新的对象，然后创建DOM changes的序列，由此来达成undo的redo的自动化。
+
+#2、undo scope和undo manager
+undo stack中存放的数据类型是DOM transactions，以及它们各自的UndoManager。
+undo栈中有个一个“undo下标”的概念，undo下标是位于两个undo入口之间的位置，undo下标的下一个入口决定undo做什么，上一个入口决定redo做什么。
+
+undo作用域（undo scope）是指同一个UndoManager所管理的所有DOM节点的结合。一个拥有undoscope属性的节点要么是一个edit_host，要么是不可编辑的却定义了一个新的undo scope。
