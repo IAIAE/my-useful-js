@@ -4,11 +4,6 @@
 node是边界点的容器，它也就对应DOM中的node，可以是Element\Comment\ProcessingInstruction\EntityReference\CDATASection\Document\DocumentFragment\Attr\Text类型的节点。但是边界点的node不能是DocumentType\Entity\Notation类型。
 
 
-![](/Users/pro/Downloads/RangeExample.gif)
-
-
-
-
 
 
 
