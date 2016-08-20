@@ -40,7 +40,9 @@ document.addEventListener('copy',function(event){
 	clipboard.items.add(new File(['hello youdao world'], 'copy.txt', {type:'text/plain'}));
 });
 ```
-这涉及到FileAPI，可以去[这里]()看。话说回来，这个接口目前即使传入File对象，剪切板的中设置的依然是string，内容为文件名称。
+这涉及到FileAPI，可以去[这里](http://www.w3.org/TR/FileAPI/#dfn-file)看。话说回来，这个接口目前即使传入File对象，剪切板的中设置的依然是string，内容为文件名称。
+
+
 
 ### 读取剪切板
 
@@ -69,10 +71,26 @@ document.addEventListener('paste',function(event){
 	});
 });
 ```
+对于能读取的数据类型，w3c官方给出的解释是：“如果一下原生类型数据存在于剪切板中，那么js就应该将之暴露出来。”（可见，w3c给出了js能够访问剪切板的支持范围）
+
+- text/plain
+- text/uri-list
+- text/csv
+- text/css
+- text/html
+- application/xhtml+xml
+- image/png
+- image/jpg, image/jpeg
+- image/gif
+- image/svg+xml
+- application/xml, text/xml
+- application/javascript
+- application/json
+- application/octet-stream
 
 #数据类型
-``event.clipboardData``的数据类型为：TransferData
+``event.clipboardData``的数据类型为：DataTransfer
 
-``clipboardData.items``的类型为：
+``clipboardData.items``的类型为：DataTransferItemList
 
 
