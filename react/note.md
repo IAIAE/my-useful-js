@@ -1,4 +1,4 @@
-#React全部过一遍
+#基本的React
 ##JSX转义
 中注入的js变量渲染时候都会被转义，这样可以防止XXS攻击。例如
 ```javascript
@@ -156,3 +156,78 @@ class Test extends Component{
   }
 }
 ```
+##隐藏一个组件
+根据一些条件，可能需要一个组件隐藏或者显示。我以前一般的做法是用`style={{display:'none'}}`，其实还有更加符合标准的做法。
+
+React定义一个组件的render返回null的时候就不渲染这个组件。所以
+```javascript
+class Warning extends Component{
+  render(){
+    if(this.props.show){
+      return <span>warning!</span> 
+    }else{
+      return null; 
+    }
+  }
+}
+//或者
+function Warning(props){
+  return props.show? <span>warning!</span> : null;
+}
+```
+还有，在React元素中注入一个js表达式为false时候，React会忽略这个false
+```javascript
+function Mailbox(props) {
+  const unreadMessages = props.unreadMessages;
+  return (
+    <div>
+      <h1>Hello!</h1>  
+      // 如果返回false的话，会直接忽略这里的注入
+      {unreadMessages.length > 0 &&
+        <h2>
+          You have {unreadMessages.length} unread messages.
+        </h2>
+      }
+    </div>
+  );
+}
+```
+##条件渲染
+在jsp中我们可以利用if条件语句选择进行渲染的方式。React中的注入脚本必须是一个js表达式，这点一定要注意。
+
+条件渲染的方式多种多样，这里写两种：
+```javascript
+function Test(props){
+  return (
+    <h1>Hello! </h1>
+    {
+      props.length>0 && <span>you have {props.length} messages</span>
+    }
+  );
+}
+```
+```javascript
+function Test(props){
+  return (
+    <h1>Hello! </h1>
+    {
+      props.length>0?(
+        <span>you have messages</span> 
+      ):(
+        <span>you haven't messages</span>
+      )
+    }
+  );
+}
+```
+##列表和key
+当React中包含相同React元素的列表的时候，需要给每一个列表元素加上一个key。key属性是React用于辨识列表元素的一个特殊的属性，最好不要将prop属性名写为key：
+```javascript
+const content = postsmap((post)=>
+  <Post 
+    key={post.id}
+    id={post.id}
+    title={post.title} />
+);
+```
+上面的代码中，`props.key`是无法读取到的。
