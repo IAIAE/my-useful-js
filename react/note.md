@@ -231,3 +231,27 @@ const content = postsmap((post)=>
 );
 ```
 上面的代码中，`props.key`是无法读取到的。
+##form表单
+html中的form表单拥有一些自动的处理逻辑，比如，可以为input标签设置name，提交的时候根据name来获取数据，还有type等于submit的标签默认有post提交功能等等。在React中，官方给出了一种限制这些原生能力的办法，称为：“受控组件”（Controlled Components）。受控组件主要针对form表单中的各个控件，为各控件添加监听方法，限制控件的改动，并且按需进行渲染。例如：
+```javascript
+class ControlledForm extends Component{
+  handleChange(e){
+    this.setState({value:e.target.value});
+  }
+  handleSubmit(e){
+    console.info(this.state.value);
+    e.preventDefault();
+  }
+  render(){
+    <form onSubmit={this.handleSubmit}>
+      <input type="text" value={this.state.value} onChange={this.handleChange} />
+      <input type="submit" value="提交">
+    </form>
+  }
+}
+```
+以上组件中，input标签是受限制的，它渲染的值是`this.state.value`，所有用户输入都会经过`handleChange`事件的处理，然后再将最终数据返回给input标签渲染出来，这样，就可以利用js脚本控制所有用户的输入，包括提交了。
+
+然当，如果不使用受控组件，还可以通过ref获取input标签的DOM，从而获取input的值。这种办法称为“非受控组件”。组件是“受控”的好还是“非受控”好，这个问题没有固定的结论，官方给出的意见是，如果需要实时的监控用户输入的话，建议使用“受控组件”。
+
+
