@@ -214,7 +214,7 @@ function Test(props){
       props.length>0?(
         <span>you have messages</span> 
       ):(
-        <span>you haven't messages</span>
+        <span>you haven\'t messages</span>
       )
     }
   );
