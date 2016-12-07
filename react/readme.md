@@ -324,4 +324,33 @@ React.createElement(
   null
 );
 ```
+根据上面的代码已经知道，JSX是一个语法糖，jsx中的标签其实是一个组件方法，一个组件方法接受props，返回React元素。所以，jsx标签不仅仅限定使用固定的变量名，它也可以是某个属性，只要这个属性是一个组件方法就是了，例如
+```javascript
+const MyComponents = {
+  DatePicker: function DatePicker(props) {
+    return <div>Imagine a {props.color} datepicker here.</div>;
+  }
+}
 
+function BlueDatePicker() {
+  return <MyComponents.DatePicker color="blue" />;
+}
+```
+但是，jsx的组件标签不能是一个求值表达式，例如`<MyComponent[props.type] />`这样是不行的。如果一定要这样用，事先求值并赋值给一个变量的做法是可以的：
+```javascript
+function MyComponentA(props){
+  var SpecificComponent = MyComponent[props.type];
+  return <SpecificComponent />;
+}
+```
+##关于props
+jsx中的属性，默认为true，以下两者是相等的：
+```javascript
+<MyTextBox autocomplete />
+<MyTextBox autocomplete={true} />
+```
+对于字符串字面量的属性，React都会对其转义，以下两者是相等的：
+```javascript
+<MyComponent message="&lt;3" />
+<MyComponent message={'<3'} />
+```
