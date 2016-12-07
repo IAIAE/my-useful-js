@@ -354,3 +354,62 @@ jsx中的属性，默认为true，以下两者是相等的：
 <MyComponent message="&lt;3" />
 <MyComponent message={'<3'} />
 ```
+##关于children
+如果显式指定了children，标签内部包含的内容优先级大于在属性栏指定的内容
+```javascript
+// props.children 等于 children2
+<TestView name="caorunqi" children={'children1'}>
+    children2
+</TestView>
+// props.children 等于 children1
+<TestView name="caorunqi" children={'children1'} />
+```
+##函数Children
+奇妙的是，可以让一个组件包裹一个函数，那么，这个组件的children就是一个函数。运用这个函数children可以做很多有趣的事：
+```javascript
+function Repeat(props){
+  let items = [];
+  for(let i=0;i<props.length;i++){
+    items.push(props.children(i));
+  }
+  return <div>{items}</div>;
+}
+<Repeat length={10}>
+  {(index)=><li key={index}>this is {index} item.</li>}
+</Repeat>
+```
+##用propType监测组件属性类型
+一个组件的prop是调用时候显式指定的。如果需要在定义时候指定属性的类型，对今后组件调用时传入属性的有效性进行监测，就需要运用组件的propTypes特性了。
+
+给一个组件制定propTypes，可以为组件的属性添加约束：
+```javascript
+var TestView = (props)=>{
+  return <div>hello {props.name}
+    {props.children}
+  </div>
+}
+```
+从上面的TestView组件的定义可以看出，它需要`name`和`children`两个属性，`name`应该是个字符串，`children`是一个React元素，两者都是必填的。那么可以这样约束：
+```javascript
+TestView.propTypes = {
+  name: React.PropTypes.string.isRequired,
+  children: React.PropTypes.element.isRequired
+};
+```
+这样，使用TestView时候如果没有传入name和children两个属性，控制台是会报错的。更加详细的属性限制写法参见：[这里](https://facebook.github.io/react/docs/typechecking-with-proptypes.html)。
+
+##Refs
+组件有一个特殊的属性，叫做ref，如果一个组件使用时定义了ref属性，分为两种情况：
+
+- 当ref的值是一个字符串时，例如`<Hello ref="hello">`，这个ref的值就相当于一个id，组件内部中可以通过`this.refs.hello`得到这个组件的DOM
+- 如果ref的值是一个函数，那么当在组件挂载和卸载时候React会调用这个函数，挂载时传入参数为这个组件的DOM，卸载时传入null.
+
+例如：
+```javascript
+// 当组件加载时候，初始化了一个新的属性this.inputNode。
+render(){
+  return <input ref={thisNode => this.inputNode = thisNode;} />
+}
+```
+其实用`ref="inputNode"`的形式很方便，但是官方还是推荐使用传入一个方法的方式。
+
