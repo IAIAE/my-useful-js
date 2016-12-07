@@ -254,4 +254,74 @@ class ControlledForm extends Component{
 
 然当，如果不使用受控组件，还可以通过ref获取input标签的DOM，从而获取input的值。这种办法称为“非受控组件”。组件是“受控”的好还是“非受控”好，这个问题没有固定的结论，官方给出的意见是，如果需要实时的监控用户输入的话，建议使用“受控组件”。
 
+##提升状态变化的控制权
+有时候，子组件的state变换不想用子组件本身去处理，需要将子组件状态变化的控制权交给父组件来处理，这种技巧叫做“控制权提升”。做法是将父组件的一个方法通过prop的方式传递给子组件，子组件在需要state发生变化时调用父组件传过来的方法。就这么简单。
+
+##组件组合与组件继承
+组件可以通过`props.children`访问自己囊括的其他组件。例如
+```javascript
+function MainView(props){
+  return (
+    <div id="main">
+      {props.children}
+    </div>
+  )
+}
+ReactDOM.render(
+  <MainView>
+    <p>this is content</p>
+  </MainView>,
+  document.getElementById('root')
+);
+```
+以上代码中，React会将MainView囊括的所有内容传递给props.children参数。
+
+如果你觉得一个chilren不够用个，当然可以自己定义属性。例如：
+```javascript
+function MainView(props){
+  return (
+    <div id="main">
+      <div id="left">
+        {props.left}
+      </div>
+      <div id="right">
+        {props.right}
+      </div>
+    </div>
+  );
+}
+ReactDOM.render(
+  <MainView 
+  left={<LeftContentView />}
+  right={<RightContentView />} />,
+  document.getElementById('root')
+);
+```
+FB官方文档上不推荐用组件继承。
+
+#高级指引
+##JSX语法探析
+jsx语法只是创建React元素的一个语法糖。对于jsx语法：
+```javascript
+<MyButton color="blue" shadowSize={2}>
+  Click me  
+</MyButton>
+```
+它其实等于：
+```javascript
+React.createElement(
+  MyButton,
+  {color:'blue',shadowSize:2},
+  'Click me'
+);
+```
+对于那些自闭合的标签，其实等于：
+```javascript
+<div className="sidebar" />
+React.createElement(
+  'div',
+  {className:'sidebar'},
+  null
+);
+```
 
