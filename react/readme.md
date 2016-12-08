@@ -292,8 +292,9 @@ function MainView(props){
 }
 ReactDOM.render(
   <MainView 
-  left={<LeftContentView />}
-  right={<RightContentView />} />,
+    left={<LeftContentView />}
+    right={<RightContentView />} 
+  />,
   document.getElementById('root')
 );
 ```
