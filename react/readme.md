@@ -468,7 +468,7 @@ class MyComponent extends Component{
     }
 }
 ```
-对于上面的例子，如果用户改变了`MyComponet`的`state.welcome`，那么render函数被调用，生成了两级结构的虚拟DOM。最外层的div新旧没有变化，所以diff算法开始检查内部的三个元素。第一个元素是一个原生的DOM element，所以diff算法只比对其新旧属性是否有变化，发现`state.welcome`变化了，所以需要更新真正DOM节点中的这个值，其他的地方不用改变；第二个元素是一个React之间，所以首先调用这个组件的`shouldComponentUpdate`方法，该方法发现自己的所有状态都没有改变，所以返回`false`，diff算法接受的到false，认为这个组件不需要更新，就不继续往下追究；第三个元素是一个没有实现`shouldComponentUpdate`方法的笨组件，diff算法就会调用这个组件的render方法重新生成一遍虚拟DOM，然后递归的对这个子组件运用diff算法。
+对于上面的例子，如果用户改变了`MyComponet`的`state.welcome`，那么render函数被调用，生成了两级结构的虚拟DOM。最外层的div新旧没有变化，所以diff算法开始检查内部的三个元素。第一个元素是一个原生的DOM element\<h1\>，所以diff算法只比对其新旧属性是否有变化，发现`state.welcome`变化了，所以需要更新真正DOM节点中的这个值，其他的地方不用改变；第二个元素是一个React组件，所以首先调用这个组件的`shouldComponentUpdate`方法，Dialog组件发现自己的所有状态都没有改变，所以返回`false`，diff算法接受的到false，认为这个组件不需要更新，就不继续往下追究；第三个元素是一个没有实现`shouldComponentUpdate`方法的笨组件，diff算法就会调用这个组件的render方法重新生成一遍虚拟DOM，然后递归的对这个子组件运用diff算法。
 
 综上所述，如果没有`shouldComponentUpdate`方法，根组件的render将会引发所有子组件的render，是很笨的方法。所以`shouldComponentUpdate`起到了剪枝的作用，对性能的提升很重要。
 
