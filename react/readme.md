@@ -413,3 +413,97 @@ render(){
 ```
 其实用`ref="inputNode"`的形式很方便，但是官方还是推荐使用传入一个方法的方式。
 
+##diff算法
+diff操作发生在render函数执行过后，render函数返回了新的虚拟节点，React对比新旧虚拟节点判断真正的DOM节点需不需更新。所以，diff算法是决定哪些真实DOM需要更新的算法。
+
+React中的Diff算法没有想象中这么智能，但是可以减少一定不必要的重绘操作。
+
+React的diff算法基于两个假设：
+
+- 如果diff前后两个节点属于不同类型，就认为这前后这两个节点及其所有子节点是完全不同的。
+- React假定，对于那些存在但是顺序可能改变的节点，开发者会指定一个key来指示它是同一个节点（虽然diff前后被挪动到同一级的其他地方了）。
+
+基于这两个假设，diff算法就变得很简单了。分为三种情况：
+###1、新旧节点类型不同
+比如旧的虚拟节点是：
+```javascript
+<div>
+  <MyComponent />
+</div>
+```
+新的虚拟节点是：
+```javascript
+<span>
+  <MyComponent />
+</span>
+```
+那么，虽然MyComponent节点并没有改变，但是它的父节点类型改变了，所以整个节点树都会被销毁然后重新构建。MyComponent组件的UnMount方法将会被调用。
+###2、新旧节点类型相同，是原生的dom节点
+React将只会更新变动的属性：
+```javascript
+// 旧
+<div className="before" title="stuff" />
+// 新
+<div className="after" title="stuff" />
+```
+如上所示，React只会更新div节点的class
+
+###3、新旧节点类型相同，是React组件类型
+这种情况，简单粗暴，直接调用组件的render方法生成新的子虚拟节点，在进入子节点中重复以上的diff操作。但是在调用render之前留给开发者执行判断的机会需不需要重新render。
+
+这是因为，父节点的render调用了后，即使子节点一点变化都没有，子节点的render也会被调用。所以设置了一个钩子函数`shouldComponentUpdate`，让开发者自己判断子节点需不需要重新绘制。这相当于剪枝操作。
+
+以一个例子说明，对于组件：
+
+```javascript
+class MyComponent extends Component{
+    render(){
+        return (
+            <div>
+              <h1>{this.state.welcome}</h1>
+              <Dialog />
+              <StupidComponent />
+            </div>
+        )
+    }
+}
+```
+对于上面的例子，如果用户改变了`MyComponet`的`state.welcome`，那么render函数被调用，生成了两级结构的虚拟DOM。最外层的div新旧没有变化，所以diff算法开始检查内部的三个元素。第一个元素是一个原生的DOM element，所以diff算法只比对其新旧属性是否有变化，发现`state.welcome`变化了，所以需要更新真正DOM节点中的这个值，其他的地方不用改变；第二个元素是一个React之间，所以首先调用这个组件的`shouldComponentUpdate`方法，该方法发现自己的所有状态都没有改变，所以返回`false`，diff算法接受的到false，认为这个组件不需要更新，就不继续往下追究；第三个元素是一个没有实现`shouldComponentUpdate`方法的笨组件，diff算法就会调用这个组件的render方法重新生成一遍虚拟DOM，然后递归的对这个子组件运用diff算法。
+
+综上所述，如果没有`shouldComponentUpdate`方法，根组件的render将会引发所有子组件的render，是很笨的方法。所以`shouldComponentUpdate`起到了剪枝的作用，对性能的提升很重要。
+
+##key的作用
+diff算法对新旧虚拟节点的比对是按照从上至下的顺序比对的。例如
+```javascript
+// 旧的
+<MyComponent name="test" />
+// 新的
+<div>hello world</div>
+<MyComponent name="test" />
+```
+diff算法从上至下比对，发现旧节点的第一元素类型是MyComponent，而新的节点第一个元素是div。所以按照diff算法，React将会销毁原来的MyComponent，然后创建一个div和一个新的MyComponent。我们看到，即时MyComponent什么都没变，还是被销毁了再重新构建一个。
+
+解决此问题的方法是为可能发生顺序变化的节点加上一个key属性。
+```javascript
+// 旧的
+<MyComponent key="my_cpt" />
+// 新的
+<div>hello world</div>
+<MyComponent key="my_cpt" />
+```
+这样，React在新旧节点都发现了key为`my_cpt`的组件，说明这个组件不需要销毁，只是顺序变了。
+
+key在列表类型的节点集合中是建议添加的，因为列表节点的顺序经常变化。
+
+有趣的是，可以给可能出现的元素加一个占位`{false}`，让所有组件顺序不变，就不会出现组件卸载后再重建的情况了。例如
+```javascript
+// 旧的
+{false}
+<MyComponent />
+// 新的
+<div>hello world</div>
+<MyComponent />
+```
+这样，即使没有用key，也不会触发MyComponent的销毁，因为MyComponent的顺序没有变。
+
+
