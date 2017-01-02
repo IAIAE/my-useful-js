@@ -21,3 +21,38 @@
 再次提醒这里只是为了讨论方便而将拥塞窗口大小的单位改为数据报的个数，实际上应当是字节。
 
 
+#启动一个tcp服务
+
+```javascript
+const app = (conn) => {
+    conn.setEncoding('utf-8')
+    let nickname;
+    pleaseInput(conn);
+    
+    conn.on('data', (data)=>{
+        if(!nickname){
+            nickname = data.replace(/\r\n/,'');
+            users[nickname] = conn;
+            taleAll('in', nickname);
+        }else{
+            taleAll('tale', nickname, data);
+        }
+    });
+
+    conn.on('close',()=>{
+        delete users[nickname];
+        taleAll('out', nickname);
+    });
+}
+
+let net =  require('net'),
+    server = net.createServer(app);
+server.listen(3000,()=>{
+    console.info('server listening 3000');
+});
+```
+
+
+
+
+
